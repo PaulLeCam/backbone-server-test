@@ -1,0 +1,7 @@
+extend layouts/base
+
+block body
+
+  - thread = collection("thread", "my posts", [{title: "Hello World!"}, {title: "Another post"}])
+  each model in thread.models
+    != view("post", {model: model})
