@@ -1,10 +1,15 @@
 define [
+  # stores
   "app/collections"
   "app/models"
   "app/views"
+  # app dependencies for build process
+  "app/templates"
+  "collections/thread"
+  "views/post"
 ], (collections, models, views) ->
 
-  # Only get a specifi collection from store
+  # Only get a specific collection from store
   collections
     .get(name: "my posts")
     .done (col) ->

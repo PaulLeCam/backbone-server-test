@@ -2,7 +2,7 @@ require.config
 
   baseUrl: "/"
 
-  deps: ["app"]
+  deps: ["backbone", "app"]
 
   shim:
     backbone_lib:

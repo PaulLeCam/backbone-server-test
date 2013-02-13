@@ -4,27 +4,28 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-contrib-copy")
   grunt.loadNpmTasks("grunt-contrib-coffee")
   grunt.loadNpmTasks("grunt-contrib-handlebars")
+  grunt.loadNpmTasks("grunt-contrib-requirejs")
 
   grunt.initConfig({
     clean: {
-      all: "client/www"
+      all: ["client/build", "client/www"]
     },
     copy: {
       all: {
         files: {
-          "client/www/": "client/assets/**"
+          "client/build/": "client/assets/**"
         }
       }
     },
     coffee: {
       shared: {
         files: {
-          "client/www/*.js": "shared/!(templates)/*"
+          "client/build/*.js": "shared/!(templates)/*"
         }
       },
       client: {
         files: {
-          "client/www/*.js": "client/coffee/**"
+          "client/build/*.js": "client/coffee/**"
         }
       }
     },
@@ -37,12 +38,23 @@ module.exports = function(grunt) {
           }
         },
         files: {
-          "client/www/app/templates.js": "shared/templates/**"
+          "client/build/app/templates.js": "shared/templates/**"
+        }
+      }
+    },
+    requirejs: {
+      compile: {
+        options: {
+          baseUrl: "client/build",
+          mainConfigFile: "client/build/common.js",
+          optimizeCss: "standard",
+          dir: "client/www",
+          name: "common"
         }
       }
     }
   })
 
-  grunt.registerTask("default", "clean copy coffee handlebars")
+  grunt.registerTask("default", "clean copy coffee handlebars requirejs")
 
 }
