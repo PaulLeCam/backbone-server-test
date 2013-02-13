@@ -3,26 +3,36 @@ module.exports = (path) ->
   (req, res, next) ->
 
     res.locals.app_data =
-      collections: {}
-      models: {}
-      views: {}
+      collections: []
+      models: []
+      views: []
 
-    res.locals.collection = (name, id, params) ->
-      Collection = require "#{ path }/collections/#{ name }"
-      collection = new Collection params
-      res.locals.app_data.collections[id] = collection
+    res.locals.collection = (type, models, name) ->
+      Collection = require "#{ path }/collections/#{ type }"
+      collection = new Collection models
+      res.locals.app_data.collections.push
+        type: type
+        data: collection.toJSON()
+        name: name if name?
       collection
 
-    res.locals.model = (name, params) ->
-      Model = require "#{ path }/models/#{ name }"
-      model = new Model params
-      res.locals.app_data.models[model.cid] = model
+    res.locals.model = (type, data, name) ->
+      Model = require "#{ path }/models/#{ type }"
+      model = new Model data
+      res.locals.app_data.models.push
+        type: type
+        data: model.toJSON()
+        name: name if name?
       model
-      
-    res.locals.view = (name, params) ->
-      View = require "#{ path }/views/#{ name }"
+
+    res.locals.view = (type, params, name) ->
+      View = require "#{ path }/views/#{ type }"
       view = new View params
-      res.locals.app_data.views[view.cid] = params
+      params.cid = view.cid
+      res.locals.app_data.views.push
+        type: type
+        data: params
+        name: name if name?
       view.render()
 
     next()

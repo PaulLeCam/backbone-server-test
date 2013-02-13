@@ -2,6 +2,6 @@ extend layouts/base
 
 block body
 
-  - thread = collection("thread", "my posts", [{title: "Hello World!"}, {title: "Another post"}])
+  - thread = collection("thread", [{title: "Hello World!"}, {title: "Another post"}], "my posts")
   each model in thread.models
     != view("post", {model: model})

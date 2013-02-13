@@ -10,11 +10,11 @@ run = (Backbone, tmpl, exp) ->
   exp PostView
 
 if typeof exports is "undefined" # Browser
-  define ["backbone", "app_templates", "app_views"]
-  , (Backbone, templates, store) ->
-    run Backbone, templates["post"], (m) -> store[m.cid] = m
+  define ["backbone", "app/templates"]
+  , (Backbone, templates) ->
+    run Backbone, templates["post"], (c) -> c
 
 else # Node
   Backbone = require "../../components/backbone"
   template = require("fs").readFileSync("#{ __dirname }/../templates/post.htm").toString()
-  run Backbone, template, (m) -> module.exports = m
+  run Backbone, template, (c) -> module.exports = c
