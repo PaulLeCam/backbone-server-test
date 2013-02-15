@@ -11,18 +11,18 @@ module.exports = (path) ->
       Collection = require "#{ path }/collections/#{ type }"
       collection = new Collection models
       res.locals.app_data.collections.push
-        type: type
+        path: "collections/#{ type }"
         data: collection.toJSON()
-        name: name if name?
+        key: name if name?
       collection
 
     res.locals.model = (type, data, name) ->
       Model = require "#{ path }/models/#{ type }"
       model = new Model data
       res.locals.app_data.models.push
-        type: type
+        path: "models/#{ type }"
         data: model.toJSON()
-        name: name if name?
+        key: name if name?
       model
 
     res.locals.view = (type, params, name) ->
@@ -30,9 +30,9 @@ module.exports = (path) ->
       view = new View params
       params.cid = view.cid
       res.locals.app_data.views.push
-        type: type
+        path: "views/#{ type }"
         data: params
-        name: name if name?
+        key: name if name?
       view.render()
 
     next()

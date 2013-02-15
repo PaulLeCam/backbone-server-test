@@ -11,12 +11,11 @@ define [
   class newBackbone.Model extends Backbone.Model
 
     constructor: (params = {}) ->
-      if (id = params.id or params.cid) and self = models.getStored id
+      if (id = params.id or params.cid) and self = models.getRunning id
         self.set params, silent: yes
         self
       else
         super params
-        models.setStored @id ? @cid, @
         @
 
     toJSON: ->
@@ -29,12 +28,11 @@ define [
     @templater = (tmpl) -> Handlebars.template tmpl
 
     constructor: (params = {}) ->
-      if (id = params.id or params.cid) and self = views.getStored id
+      if (id = params.id or params.cid) and self = views.getRunning id
         self.initialize params
         self
       else
         super params
-        views.setStored @id ? @cid, @
         @
 
     events:

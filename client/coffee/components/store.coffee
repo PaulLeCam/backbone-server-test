@@ -1,97 +1,49 @@
 define [
   "underscore"
   "jquery"
-], (_, $) ->
+  "./Modules"
+], (_, $, Modules) ->
 
-  class Store
+  class Store extends Modules
 
-    constructor: (items = []) ->
-      @setData item.name, item for item in items
+    setConfig: (key, value = {}) ->
+      key ?= value.data.id ? value.data.cid if _.isObject(value) and value.data
+      super key, value
 
-    initialize: ->
+    get: (key, path, data = {}) ->
       dfd = $.Deferred()
-      promises = (@create params for key, params of @_data)
-      $.when.apply($, promises).then (res...) ->
-        dfd.resolve res
-      , dfd.reject
-      dfd.promise()
 
-    #
-    # Keys
-    #
-    addKey: (key) ->
-      @_keys[key] = on
+      if _.isObject key
+        if (config = key) and config.path? and config.data?
+          @run(config).pipe dfd.resolve, dfd.reject
 
-    hasKey: (key) ->
-      @_keys[key]?
+        else if id = key.id ? key.cid
+          key = id
 
-    #
-    # Raw data
-    #
-    hasData: (key) ->
-      @_data[key]?
+      unless config?
+        if @runs key
+          dfd.resolve @getRunning key
 
-    getData: (key) ->
-      @_data[key]
+        else if @has key
+          config = @getConfig key
+          if config.path?
+            @run(config).pipe dfd.resolve, dfd.reject
+          else
+            dfd.resolve config
 
-    setData: (key, params = {}) ->
-      key ?= params.data?.id ? params.data?.cid
-      @_data[key] = params
-      @addKey key
-      @
-
-    #
-    # Store
-    #
-    hasStored: (key) ->
-      @_stored[key]?
-
-    getStored: (key) ->
-      @_stored[key]
-
-    setStored: (key, data = {}) ->
-      return @ unless key
-      @_stored[key] = data
-      @addKey key
-      @
-
-    # Should be able to handle object with name, data.id or data.cid, id or cid
-    # If type and data, create
-    get: (params) ->
-      dfd = $.Deferred()
-      key =
-        if _.isObject params
-          if params.name then params.name
-          else if params.data then params.data.id ? params.data.cid
-          else null
-        else params
-
-      if key?
-        if stored = @getStored key then dfd.resolve stored
-        else if (data_params = @getData key) and data_params.type and data_params.data
-          @create(data_params).pipe dfd.resolve, dfd.reject
-
-      else if _.isObject(params) and params.type and params.data
-        @create(params).pipe dfd.resolve, dfd.reject
-
-      else
-        dfd.reject new Error "No key attribute found"
+        else
+          @run({key, path, data}).pipe dfd.resolve, dfd.reject
 
       dfd.promise()
 
-    create: (params = {}) ->
+    run: (config = {}) ->
       dfd = $.Deferred()
-      @load(params.type)
+      return dfd.reject new Error "no path provided" unless config.path?
+      @load(config.path)
         .fail(dfd.reject)
         .done (Cls) =>
-          e = new Cls params.data
-          @setStored params.name, e
+          e = new Cls config.data
+          config.key ?= e.id ? e.cid
+          @setRunning config.key, e
           dfd.resolve e
-      dfd.promise()
-
-    load: (type) ->
-      dfd = $.Deferred()
-      require ["#{ @_path }/#{ type }"]
-      , dfd.resolve
-      , dfd.reject
       dfd.promise()

@@ -1,4 +1,5 @@
 define [
+  "components/modules"
   # stores
   "app/collections"
   "app/models"
@@ -7,13 +8,22 @@ define [
   "app/templates"
   "collections/thread"
   "views/post"
-], (collections, models, views) ->
+], (Modules, collections, models, views) ->
+
+  app = (new Modules)
+    .setConfig("test", "value")
+
+  # Create new model
+  models
+    .get("new post", "models/post", title: "hello")
+    .done (m) ->
+      console.log "created model", m
 
   # Only get a specific collection from store
   collections
-    .get(name: "my posts")
-    .done (col) ->
-      console.log "got my posts", col
+    .get("my posts")
+    .done (c) ->
+      console.log "got my posts", c
 
   # Initialize all views
   views.initialize().done (views) ->
