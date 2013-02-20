@@ -10,8 +10,6 @@ require.config
       exports: "Backbone"
     handlebars:
       exports: "Handlebars"
-    "app/templates":
-      exports: "App.templates"
 
   paths:
     jquery: "libs/jquery"

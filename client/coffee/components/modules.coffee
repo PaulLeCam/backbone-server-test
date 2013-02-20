@@ -3,35 +3,87 @@ define [
   "jquery"
 ], (_, $) ->
 
+  # use {load, configure, initialize} api in config objects!
   class Modules
 
     #
     # Lifecycle
     #
-    constructor: (items = []) ->
+    constructor: (config = {}) ->
       @_config = {}
       @_running = {}
-      @setConfig item.key, item for item in items
+      @configure config
 
-    initialize: ->
+    configure: (config = {}) ->
+      if _.isArray config
+        @setConfig item.key, item.value for item in config
+      else
+        for key, value of config
+          console.log "configure should set", key, value
+          @setConfig key, value #for key, value of config
+      @
+
+    initialize: (config) ->
       dfd = $.Deferred()
-      promises = (@run config for key, config of @_config)
-      $.when.apply($, promises).then (res...) ->
-        dfd.resolve res
-      , dfd.reject
+      if config?
+        if _.isArray config # Only initialize white-listed keys
+          promises = (@_run value for key, value of @_config when key in config)
+        else if _.isString config # Single key
+          if @has key then promises = [@_run @getConfig key]
+          else
+            err = "Could not initialize undefined key `#{ config }`"
+            @_warn err
+            dfd.reject new Error err
+        else if _.isObject config # Configuration object, will overwrite default config
+          @configure config
+          promises = (@_run value for key, value of @_config)
+        else # Bad parameter
+          err = "Unhandled initialize argument"
+          @_warn err, config
+          dfd.reject new Error err
+      else # Initialize all
+        promises = (@_run value for key, value of @_config)
+
+      if promises? and promises.length
+        $.when.apply($, promises).then (res...) ->
+          dfd.resolve res
+        , dfd.reject
+
+      else
+        dfd.resolve()
+
       dfd.promise()
 
     #
-    # Logs
+    # Logs and default logger
     #
-    _logDefault: ->
-      console?.log.apply console, arguments
+    _log: ->
+      @_callLogger "log", arguments
+      # @_callEmitter "log", arguments
 
-    _warnDefault: ->
-      console?.warn.apply console, arguments
+    _warn: ->
+      @_callLogger "warn", arguments
+      # @_callEmitter "warn", arguments
 
-    _errorDefault: ->
-      console?.error.apply console, arguments
+    _error: ->
+      @_callLogger "error", arguments
+      # @_callEmitter "error", arguments
+
+    _callLogger: (func, args) ->
+      return unless @getConfig "debug"
+
+      if @has "logger" # Custom module
+        @get("logger")
+          .fail(=> console.error "Could not load `logger` module", @getConfig "logger")
+          .done (logger) ->
+            if logger[func]? then logger[func].apply m, args
+            else console.error "Could not find function `#{ func }` in `logger` module"
+
+      else
+        console[func].apply console, args
+
+    _callEmitter: (type, args) ->
+      @callRuns "pubsub", "trigger", type, args
 
     #
     # Config objects
@@ -43,11 +95,17 @@ define [
       else @_config[key]?
 
     getConfig: (key) ->
-      @_config[key]
+      if key.indexOf(".") isnt -1
+        arr = key.split "."
+        (modules = @_config[arr.shift()]) and modules instanceof Modules and modules.getConfig arr.join "."
+      else @_config[key]
 
     setConfig: (key, value = {}) ->
       return @ unless key?
-      @_config[key] = value
+      if key.indexOf(".") isnt -1
+        arr = key.split "."
+        (modules = @_config[arr.shift()]) and modules instanceof Modules and modules.setConfig arr.join("."), value
+      else @_config[key] = value
       @
 
     setPath: (key, path) ->
@@ -72,17 +130,17 @@ define [
       @
 
     #
-    # Deferred creation and retieval
+    # Deferred creation and retrieval
     #
-    get: (key, path, data = {}) ->
+    get: (key, options = {}) ->
       dfd = $.Deferred()
 
       if _.isObject key
-        if (config = key) and config.path? and config.data?
-          @run(config).pipe dfd.resolve, dfd.reject
+        if (config = key) and config.path?
+          @_run(config).pipe dfd.resolve, dfd.reject
         else
-          err = "missing path or data in #get config Object"
-          @_errorDefault err
+          err = "Missing path in #get config Object"
+          @_error err
           dfd.reject new Error err
 
       else if @runs key
@@ -90,48 +148,94 @@ define [
 
       else if @has key
         config = @getConfig key
-        if config.path? then @run(config).pipe dfd.resolve, dfd.reject
+        if _.isObject(config) and config.path?
+          config.key = key
+          @_run(config).pipe dfd.resolve, dfd.reject
         else dfd.resolve config
 
-      else @run({key, path, data}).pipe dfd.resolve, dfd.reject
+      else
+        options.key ?= key
+        @_run(options).pipe dfd.resolve, dfd.reject
 
       dfd.promise()
 
-    set: (key, path, data) ->
-      if data?
-        if path? then @run {key, path, data}
-        else @setConfig key, data
+    set: (key, value) ->
+      if value? then @setConfig key, value
 
       else if key instanceof Modules
-        _.extend @_config, modules._config
-        _.extend @_running, modules._running
-
-      else if path instanceof Modules
-        @setConfig key, modules
+        _.extend @_config, key._config
+        _.extend @_running, key._running
 
       else if _.isObject(key) and (config = key) and config.data?
         if config.path? then @run config
         else @setConfig config.key, config.data
 
-      else @_warnDefault "unhandled #set arguments", key, path, data
+      else @_warn "unhandled #set arguments", key, value
 
       @
 
     #
+    # Calls
+    #
+    callHas: (module, func, args...) ->
+      if @has module
+        @get(module)
+          .fail(=> @_error "Could not load `#{ module }` module", @getConfig module)
+          .done (m) =>
+            if m[func]?
+              res = m[func].apply m, args
+              if res.fail?
+                res.fail (args...) => @_warn "Call to function `#{ func }` in `#{ module }` module was rejected", args
+              if res.done?
+                res.done (args...) => @_log "Call to function `#{ func }` in `#{ module }` module was resolved", args
+            else @_error "Could not find function `#{ func }` in `#{ module }` module"
+        yes
+      else no
+
+    callRuns: (module, func, args...) ->
+      if @runs module
+        @get(module)
+          .fail(=> @_error "Could not load `#{ module }` module", @getConfig module)
+          .done (m) =>
+            if m[func]?
+              res = m[func].apply m, args
+              if res.fail?
+                res.fail (args...) => @_warn "Call to function `#{ func }` in `#{ module }` module was rejected", args
+              if res.done?
+                res.done (args...) => @_log "Call to function `#{ func }` in `#{ module }` module was resolved", args
+            else @_error "Could not find function `#{ func }` in `#{ module }` module"
+        yes
+      else no
+
+    #
     # Loading and creation
     #
-    run: (config = {}) ->
+    _run: (config = {}) ->
       dfd = $.Deferred()
-      return dfd.reject new Error "no path provided" unless config.path?
-      @load(config.path)
-        .fail(dfd.reject)
-        .done (func) =>
-          e = func.call func, @, config.data
-          @setRunning config.key, e
-          dfd.resolve e
+      if config.path?
+        @_load(config.path)
+          .fail(dfd.reject)
+          .done (func) =>
+            @_factory(func, config).pipe dfd.resolve, dfd.reject
+      else
+        err = "No path provided"
+        @_error err, config
+        dfd.reject new Error err
       dfd.promise()
 
-    load: (path) ->
+    _factory: (func, config) ->
       dfd = $.Deferred()
-      require [path], dfd.resolve, dfd.reject
+      config.data.context ?= @ if config.data? and _.isObject config.data
+      e = func.call func, config.data
+      @setRunning config.key, e
+      dfd.resolve e
       dfd.promise()
+
+    _load: (path) ->
+      if @has "loader"
+        loader = @getConfig "loader"
+        loader.call loader, @, path
+      else
+        dfd = $.Deferred()
+        require [path], dfd.resolve, dfd.reject
+        dfd.promise()

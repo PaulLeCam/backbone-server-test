@@ -11,7 +11,34 @@ define [
 ], (Modules, collections, models, views) ->
 
   app = (new Modules)
-    .setConfig("test", "value")
+    .set("debug", yes)
+    .set("pubsub", path: "components/pubsub")
+
+  app.get("pubsub").done (ps) ->
+    ps.on "all", (args...) -> console.log "pubsub emitted", args
+    ps.trigger "got", "pubsub"
+
+  app.set "models", # new Store App.models
+    path: "components/store-factory"
+    data: App.models
+
+  setTimeout ->
+    app.callRuns "pubsub", "trigger", "runs", "pubsub"
+    app.get("models")
+      .done (models) ->
+        console.log "can I haz models?", models
+
+        models
+          .get("new post", "models/post", title: "hello")
+          .done (m) ->
+            console.log "created model", m
+  , 1000
+
+  app.callHas "models", "get",
+    key: "new world"
+    path: "models/post"
+    data:
+      title: "huho?"
 
   # Create new model
   models

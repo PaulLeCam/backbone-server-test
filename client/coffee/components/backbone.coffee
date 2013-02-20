@@ -25,7 +25,7 @@ define [
 
   class newBackbone.View extends Backbone.View
 
-    @templater = (tmpl) -> Handlebars.template tmpl
+    @templater = (tmpl) -> tmpl
 
     constructor: (params = {}) ->
       if (id = params.id or params.cid) and self = views.getRunning id
