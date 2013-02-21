@@ -2,10 +2,10 @@ require.config
 
   baseUrl: "/"
 
-  deps: ["backbone", "app"]
+  deps: ["app"]
 
   shim:
-    backbone_lib:
+    backbone:
       deps: ["underscore", "jquery"]
       exports: "Backbone"
     handlebars:
@@ -15,5 +15,4 @@ require.config
     jquery: "libs/jquery"
     underscore: "libs/lodash"
     handlebars: "libs/handlebars.runtime"
-    backbone_lib: "libs/backbone"
-    backbone: "components/backbone"
+    backbone: "libs/backbone"

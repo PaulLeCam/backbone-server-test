@@ -1,7 +1,8 @@
-run = (Backbone, tmpl, exp) ->
+run = (mvc, Post, tmpl, exp) ->
 
-  class PostView extends Backbone.View
+  class PostView extends mvc.View
 
+    Model: Post
     template: @templater tmpl
 
     render: ->
@@ -10,11 +11,12 @@ run = (Backbone, tmpl, exp) ->
   exp PostView
 
 if typeof exports is "undefined" # Browser
-  define ["backbone", "app/templates"]
-  , (Backbone, templates) ->
-    run Backbone, templates["post"], (c) -> c
+  define ["ext/framework", "models/post", "app/templates"]
+  , (framework, Post, templates) ->
+    run framework.mvc, Post, templates["post"], (c) -> c
 
 else # Node
   Backbone = require "../../components/backbone"
+  Post = require "../models/post"
   template = require("fs").readFileSync("#{ __dirname }/../templates/post.htm").toString()
-  run Backbone, template, (c) -> module.exports = c
+  run Backbone, Post, template, (c) -> module.exports = c

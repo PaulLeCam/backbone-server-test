@@ -1,5 +1,5 @@
 define [
-  "components/store"
-], (Store) ->
+  "components/data-store"
+], (DataStore) ->
 
-  new Store App.collections
+  new DataStore App.collections

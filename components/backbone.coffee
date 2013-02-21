@@ -10,7 +10,7 @@ class newBackbone.Model extends Backbone.Model
 
   toJSON: ->
     json = super()
-    json.id ?= @cid
+    json.id ?= @id ? @cid
     json
 
 class newBackbone.View extends Backbone.View

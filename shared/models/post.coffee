@@ -1,11 +1,11 @@
-run = (Backbone, exp) ->
+run = (mvc, exp) ->
 
-  exp class Post extends Backbone.Model
+  exp class Post extends mvc.Model
 
 
 if typeof exports is "undefined" # Browser
-  define ["backbone"], (Backbone) ->
-    run Backbone, (c) -> c
+  define ["ext/framework"], (framework) ->
+    run framework.mvc, (c) -> c
 
 else # Node
   run require("../../components/backbone"), (c) -> module.exports = c

@@ -12,9 +12,8 @@ module.exports = (path) ->
       collection = new Collection models
       res.locals.app_data.collections.push
         key: name
-        value:
-          path: "collections/#{ type }"
-          data: collection.toJSON()
+        load: "collections/#{ type }"
+        data: collection.toJSON()
       collection
 
     res.locals.model = (type, data, name) ->
@@ -22,9 +21,8 @@ module.exports = (path) ->
       model = new Model data
       res.locals.app_data.models.push
         key: name
-        value:
-          path: "models/#{ type }"
-          data: model.toJSON()
+        load: "models/#{ type }"
+        data: model.toJSON()
       model
 
     res.locals.view = (type, params, name) ->
@@ -33,9 +31,8 @@ module.exports = (path) ->
       params.cid = view.cid
       res.locals.app_data.views.push
         key: name
-        value:
-          path: "views/#{ type }"
-          data: params
+        load: "views/#{ type }"
+        data: params
       view.render()
 
     next()

@@ -1,57 +1,40 @@
 define [
-  "components/modules"
-  # stores
+  "sandbox/widget"
+  "components/mvc-factory"
+  "components/data-store"
   "app/collections"
-  "app/models"
-  "app/views"
-  # app dependencies for build process
-  "app/templates"
-  "collections/thread"
-  "views/post"
-], (Modules, collections, models, views) ->
+  "models/post"
+], (sandbox, factory, DataStore, collections, Post) ->
 
-  app = (new Modules)
-    .set("debug", yes)
-    .set("pubsub", path: "components/pubsub")
+  sandbox.on "app:start", ->
+    console.log "sandbox app started!"
 
-  app.get("pubsub").done (ps) ->
-    ps.on "all", (args...) -> console.log "pubsub emitted", args
-    ps.trigger "got", "pubsub"
+  factory.initialize(App.views)
+    .fail((err) -> console.error err)
+    .done (res) ->
+      console.log "views", res
 
-  app.set "models", # new Store App.models
-    path: "components/store-factory"
-    data: App.models
+  collections.get("my posts").done (res) ->
+    console.log "got my posts", res
 
-  setTimeout ->
-    app.callRuns "pubsub", "trigger", "runs", "pubsub"
-    app.get("models")
-      .done (models) ->
-        console.log "can I haz models?", models
-
-        models
-          .get("new post", "models/post", title: "hello")
-          .done (m) ->
-            console.log "created model", m
-  , 1000
-
-  app.callHas "models", "get",
-    key: "new world"
-    path: "models/post"
+  data = new DataStore
+  # Simple key/value
+  data.set "test1", title: "test1"
+  # Factory configuration
+  data.set "test2",
+    load: "models/post"
     data:
-      title: "huho?"
+      title: "test2"
+  # Model or Collection instance
+  data.set "test3", new Post title: "test3"
 
-  # Create new model
-  models
-    .get("new post", "models/post", title: "hello")
-    .done (m) ->
-      console.log "created model", m
+  data.get("test1").done (res) ->
+    console.log "test1 res", res
 
-  # Only get a specific collection from store
-  collections
-    .get("my posts")
-    .done (c) ->
-      console.log "got my posts", c
+  data.get("test2").done (res) ->
+    console.log "test2 res", res
 
-  # Initialize all views
-  views.initialize().done (views) ->
-    console.log "initialized views", views
+  data.get("test3").done (res) ->
+    console.log "test3 res", res
+
+  sandbox.start()
