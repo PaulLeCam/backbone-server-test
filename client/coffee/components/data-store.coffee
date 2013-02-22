@@ -11,13 +11,14 @@ define [
       @config = new sandbox.Store
       @instances = new sandbox.Store
 
+      @configure config
+
+    configure: (config = {}) ->
       if sandbox.util.isArray config
         @config.set item.key, item for item in config
       else
         @config.set key, value for key, value of config
-
-    instanciate: (config) ->
-      factory.instanciate config
+      @
 
     initialize: (config) ->
       dfd = sandbox.deferred()
@@ -65,6 +66,9 @@ define [
         dfd.resolve()
 
       dfd.promise()
+
+    instanciate: (config) ->
+      factory.instanciate config
 
     get: (key, options = {}) ->
       dfd = sandbox.deferred()

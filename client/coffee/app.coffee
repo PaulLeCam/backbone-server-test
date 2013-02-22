@@ -2,9 +2,9 @@ define [
   "sandbox/widget"
   "components/mvc-factory"
   "components/data-store"
-  "app/collections"
+  "services/data"
   "models/post"
-], (sandbox, factory, DataStore, collections, Post) ->
+], (sandbox, factory, DataStore, data, Post) ->
 
   sandbox.on "app:start", ->
     console.log "sandbox app started!"
@@ -14,10 +14,9 @@ define [
     .done (res) ->
       console.log "views", res
 
-  collections.get("my posts").done (res) ->
+  data.get("my posts").done (res) ->
     console.log "got my posts", res
 
-  data = new DataStore
   # Simple key/value
   data.set "test1", title: "test1"
   # Factory configuration

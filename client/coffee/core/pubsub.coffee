@@ -1,9 +1,6 @@
 define [
   "./util"
   "./events"
-], (util, Events) ->
+], (util, events) ->
 
-  pubsub = util.extend {}, Events
-  pubsub.emit = pubsub.trigger
-
-  pubsub
+  util.extend {}, events

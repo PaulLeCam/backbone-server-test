@@ -3,14 +3,13 @@ module.exports = (path) ->
   (req, res, next) ->
 
     res.locals.app_data =
-      collections: []
-      models: []
+      data: []
       views: []
 
     res.locals.collection = (type, models, name) ->
       Collection = require "#{ path }/collections/#{ type }"
       collection = new Collection models
-      res.locals.app_data.collections.push
+      res.locals.app_data.data.push
         key: name
         load: "collections/#{ type }"
         data: collection.toJSON()
@@ -19,7 +18,7 @@ module.exports = (path) ->
     res.locals.model = (type, data, name) ->
       Model = require "#{ path }/models/#{ type }"
       model = new Model data
-      res.locals.app_data.models.push
+      res.locals.app_data.data.push
         key: name
         load: "models/#{ type }"
         data: model.toJSON()

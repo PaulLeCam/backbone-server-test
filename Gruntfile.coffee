@@ -1,62 +1,89 @@
 module.exports = (grunt) ->
   grunt.initConfig
 
+    dir:
+      build: "client/build"
+      prod: "client/www"
+      assets: "client/assets"
+      shared: "shared"
+      code: "client/coffee"
+      styles: "client/stylus"
+
     clean:
-      all: ["client/build", "client/www"]
+      build: "<%= dir.build %>"
+      prod: "<%= dir.prod %>"
 
     copy:
       all:
         files: [
           expand: yes
-          cwd: "client/assets/"
+          cwd: "<%= dir.assets %>"
           src: "**"
-          dest: "client/build/"
+          dest: "<%= dir.build %>"
         ]
 
     coffee:
       shared:
         files: [
           expand: yes
-          cwd: "shared/"
+          cwd: "<%= dir.shared %>"
           src: "**/*.coffee"
-          dest: "client/build/"
+          dest: "<%= dir.build %>"
           ext: ".js"
         ]
 
       client:
         files: [
           expand: yes
-          cwd: "client/coffee/"
+          cwd: "<%= dir.code %>"
           src: "**/*.coffee"
-          dest: "client/build/"
+          dest: "<%= dir.build %>"
           ext: ".js"
         ]
 
     handlebars:
       all:
         options:
-          namespace: "App.templates"
+          namespace: no
           amd: yes
           processName: (filename) ->
             filename.replace("shared/templates/", "").replace(".htm", "")
         files: [
-          src: "shared/templates/**/*.htm"
-          dest: "client/build/app/templates.js"
+          expand: yes
+          cwd: "<%= dir.shared %>/templates/"
+          src: "**/*.htm"
+          dest: "<%= dir.build %>/templates"
+          ext: ".js"
         ]
+
+    watch:
+      coffee:
+        files: ["<%= dir.shared %>/**/*.coffee", "<%= dir.code %>/**/*.coffee"]
+        tasks: "coffee"
+      handlebars:
+        files: "<%= dir.shared %>/templates/**/*.htm"
+        tasks: "handlebars"
+      stylus:
+        files: "<%= dir.styles %>/**/*.styl"
+        tasks: "stylus"
 
     requirejs:
       compile:
         options:
-          baseUrl: "client/build"
-          mainConfigFile: "client/build/common.js"
+          baseUrl: "<%= dir.build %>"
+          mainConfigFile: "<%= dir.build %>/common.js"
           optimizeCss: "standard"
-          dir: "client/www"
+          dir: "<%= dir.prod %>"
           name: "common"
 
   grunt.loadNpmTasks "grunt-contrib-clean"
   grunt.loadNpmTasks "grunt-contrib-copy"
   grunt.loadNpmTasks "grunt-contrib-coffee"
   grunt.loadNpmTasks "grunt-contrib-handlebars"
+  grunt.loadNpmTasks "grunt-contrib-watch"
   grunt.loadNpmTasks "grunt-contrib-requirejs"
 
-  grunt.registerTask "default", ["clean", "copy", "coffee", "handlebars", "requirejs"]
+  grunt.registerTask "build", ["clean:build", "copy", "coffee", "handlebars"]
+  grunt.registerTask "dev", ["build", "watch"]
+  grunt.registerTask "prod", ["build", "clean:prod", "requirejs"]
+  grunt.registerTask "default", ["prod"]

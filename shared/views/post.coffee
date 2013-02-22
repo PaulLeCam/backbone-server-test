@@ -11,9 +11,9 @@ run = (mvc, Post, tmpl, exp) ->
   exp PostView
 
 if typeof exports is "undefined" # Browser
-  define ["ext/framework", "models/post", "app/templates"]
-  , (framework, Post, templates) ->
-    run framework.mvc, Post, templates["post"], (c) -> c
+  define ["ext/framework", "models/post", "templates/post"]
+  , (framework, Post, template) ->
+    run framework.mvc, Post, template, (c) -> c
 
 else # Node
   Backbone = require "../../components/backbone"

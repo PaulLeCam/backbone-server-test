@@ -2,4 +2,7 @@ define [
   "backbone"
 ], (Backbone) ->
 
-  Backbone.Events
+  events = Backbone.Events
+  events.emit = events.trigger
+
+  events
