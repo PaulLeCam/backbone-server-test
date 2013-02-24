@@ -44,11 +44,11 @@ define [
         else if _.isObject config
           promises = []
           for key, value of config
-            @config.set key, value 
+            @config.set key, value
             value.key ?= key
             promises.push @instanciate value
         # Bad parameter
-        else 
+        else
           dfd.reject new Error "Unhandled initialize argument"
 
       # Initialize all
@@ -78,7 +78,7 @@ define [
         @instanciate(key).pipe dfd.resolve, dfd.reject
 
       # Already instanciated
-      else if @instances.has key 
+      else if @instances.has key
         dfd.resolve @instances.get key
 
       # In config

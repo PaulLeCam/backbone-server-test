@@ -8,4 +8,8 @@ define [
   "ext/framework"
 ], (util, events, http, promise, command, Store, framework) ->
 
-  util.extend {}, {util}, {events}, {http}, promise, command, {Store}, framework
+  util.extend {}, promise, command, framework,
+    {util},
+    {events},
+    {http},
+    {Store}

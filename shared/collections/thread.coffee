@@ -11,4 +11,4 @@ if typeof exports is "undefined" # Browser
     run framework.mvc, Post, (c) -> c
 
 else # Node
-  run require("../../components/backbone"), require("../models/post"), (c) -> module.exports = c
+  run require("../../components/backbone-framework"), require("../models/post"), (c) -> module.exports = c

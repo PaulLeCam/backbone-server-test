@@ -8,4 +8,8 @@ define [
   "ext/framework"
 ], (util, dom, events, promise, command, mediator, framework) ->
 
-  util.extend {}, {util}, {dom}, {events}, promise, mediator, framework, request: command.request
+  util.extend {}, promise, mediator, framework,
+    {util},
+    {dom},
+    {events},
+    request: command.request

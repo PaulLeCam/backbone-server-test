@@ -8,4 +8,11 @@ define [
   "ext/framework"
 ], (util, events, http, promise, command, mediator, framework) ->
 
-  util.extend {}, {util}, {events}, {http}, promise, command, mediator, framework
+  util.extend {}, promise, command, mediator,
+    {util},
+    {events},
+    {http},
+    routing: framework.routing,
+    mvc:
+      Model: framework.mvc.Model
+      Collection: framework.mvc.Model

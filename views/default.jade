@@ -2,6 +2,7 @@ extend layouts/base
 
 block body
 
+  #widget
   - posts = collection("thread", thread, "my posts")
   each model in posts.models
     != view("post", {model: model})

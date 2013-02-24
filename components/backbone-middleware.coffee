@@ -2,35 +2,32 @@ module.exports = (path) ->
 
   (req, res, next) ->
 
+    createData = (client_path, data, name) ->
+      Cls = require "#{ path }/#{ client_path }"
+      item = new Cls data
+      res.locals.app_data.data.push
+        key: name
+        load: client_path
+        data: item.toJSON()
+      item
+
     res.locals.app_data =
       data: []
       views: []
 
     res.locals.collection = (type, models, name) ->
-      Collection = require "#{ path }/collections/#{ type }"
-      collection = new Collection models
-      res.locals.app_data.data.push
-        key: name
-        load: "collections/#{ type }"
-        data: collection.toJSON()
-      collection
+      createData "collections/#{ type }", models, name
 
     res.locals.model = (type, data, name) ->
-      Model = require "#{ path }/models/#{ type }"
-      model = new Model data
-      res.locals.app_data.data.push
-        key: name
-        load: "models/#{ type }"
-        data: model.toJSON()
-      model
+      createData "models/#{ type }", data, rel_path, name
 
-    res.locals.view = (type, params, name) ->
-      View = require "#{ path }/views/#{ type }"
+    res.locals.view = (type, params) ->
+      rel_path = "views/#{ type }"
+      View = require "#{ path }/#{ rel_path }"
       view = new View params
       params.cid = view.cid
       res.locals.app_data.views.push
-        key: name
-        load: "views/#{ type }"
+        load: rel_path
         data: params
       view.render()
 

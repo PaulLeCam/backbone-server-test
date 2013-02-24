@@ -9,6 +9,8 @@ define [
   sandbox.on "app:start", ->
     console.log "sandbox app started!"
 
+  sandbox.widgets.start "hello", "#widget"
+
   factory.initialize(App.views)
     .fail((err) -> console.error err)
     .done (res) ->

@@ -3,7 +3,7 @@ run = (mvc, Post, tmpl, exp) ->
   class PostView extends mvc.View
 
     Model: Post
-    template: @templater tmpl
+    template: tmpl
 
     render: ->
       @renderer @template @model.toJSON()
@@ -16,7 +16,8 @@ if typeof exports is "undefined" # Browser
     run framework.mvc, Post, template, (c) -> c
 
 else # Node
-  Backbone = require "../../components/backbone"
+  Handlebars = require "handlebars"
+  Backbone = require "../../components/backbone-framework"
   Post = require "../models/post"
-  template = require("fs").readFileSync("#{ __dirname }/../templates/post.htm").toString()
+  template = Handlebars.compile require("fs").readFileSync("#{ __dirname }/../templates/post.htm").toString()
   run Backbone, Post, template, (c) -> module.exports = c

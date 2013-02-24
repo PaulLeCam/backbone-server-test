@@ -45,11 +45,15 @@ define [
         @store.set key, self
       self
 
+    emit: ->
+      @trigger.apply @, arguments
+
   class Collection extends mvc.Collection
 
-  class View extends mvc.View
+    emit: ->
+      @trigger.apply @, arguments
 
-    @templater = (tmpl) -> tmpl
+  class View extends mvc.View
 
     events:
       click: (e) ->
@@ -68,16 +72,37 @@ define [
         $el = dom.find "[data-view=#{ params.cid }]"
         @setElement $el if $el.length
 
+    emit: ->
+      @trigger.apply @, arguments
+
+    render: ->
+      @renderer @template @model.toJSON()
+
     renderer: (html) ->
       @$el
         .attr("data-view", @cid)
         .html html
       template.renderSubViews @$el
-      @el
+      @
+
+  #
+  # Widget
+  #
+
+  class Widget extends View
+
+    start: ->
+      if @rendered then @delegateEvents()
+      else
+        @render()
+        @rendered = yes
+
+    stop: ->
+      @undelegateEvents()
 
   #
   # Public API
   #
 
   mvc = {Model, View, Collection}
-  {mvc, template, routing}
+  {mvc, template, routing, Widget}
