@@ -2,52 +2,63 @@ module.exports = (grunt) ->
   grunt.initConfig
 
     dir:
-      build: "client/build"
-      buildjs: "client/build/js"
-      prod: "client/www"
-      assets: "client/assets"
-      shared: "shared"
-      code: "client/coffee"
-      widgets: "client/widgets"
-      styles: "client/stylus"
+      shared:
+        root: "shared"
+        templates: "shared/templates"
+      client:
+        assets: "client/assets"
+        code: "client/coffee"
+        widgets: "client/widgets"
+        styles: "client/stylus"
+      build:
+        root: "client/build"
+        css: "client/build/css"
+        js: "client/build/js"
+        templates: "client/build/js/templates"
+        widgets: "client/build/js/widgets"
+      prod:
+        root: "client/www"
+        css: "client/www/css"
+        js: "client/www/js"
+        widgets: "client/www/js/widgets"
 
     clean:
-      build: "<%= dir.build %>"
-      prod: "<%= dir.prod %>"
-      widgets: "<%= dir.prod %>/js/widgets/*/*"
+      build: "<%= dir.build.root %>"
+      prod: "<%= dir.prod.root %>"
+      widgets: "<%= dir.prod.widgets %>/*/*"
 
     copy:
       assets:
         files: [
           expand: yes
-          cwd: "<%= dir.assets %>"
+          cwd: "<%= dir.client.assets %>"
           src: "**"
-          dest: "<%= dir.build %>"
+          dest: "<%= dir.build.root %>"
         ]
 
     coffee:
       shared:
         files: [
           expand: yes
-          cwd: "<%= dir.shared %>"
+          cwd: "<%= dir.shared.root %>"
           src: "**/*.coffee"
-          dest: "<%= dir.buildjs %>"
+          dest: "<%= dir.build.js %>"
           ext: ".js"
         ]
       client:
         files: [
           expand: yes
-          cwd: "<%= dir.code %>"
+          cwd: "<%= dir.client.code %>"
           src: "**/*.coffee"
-          dest: "<%= dir.buildjs %>"
+          dest: "<%= dir.build.js %>"
           ext: ".js"
         ]
       widgets:
         files: [
           expand: yes
-          cwd: "<%= dir.widgets %>"
+          cwd: "<%= dir.client.widgets %>"
           src: "**/*.coffee"
-          dest: "<%= dir.buildjs %>/widgets"
+          dest: "<%= dir.build.widgets %>"
           ext: ".js"
         ]
 
@@ -58,9 +69,9 @@ module.exports = (grunt) ->
           amd: yes
         files: [
           expand: yes
-          cwd: "<%= dir.shared %>/templates/"
+          cwd: "<%= dir.shared.templates %>"
           src: "**/*.htm"
-          dest: "<%= dir.buildjs %>/templates"
+          dest: "<%= dir.build.templates %>"
           ext: ".js"
         ]
       widgets:
@@ -69,41 +80,50 @@ module.exports = (grunt) ->
           amd: yes
         files: [
           expand: yes
-          cwd: "<%= dir.widgets %>"
+          cwd: "<%= dir.client.widgets %>"
           src: "*/templates/*.htm"
-          dest: "<%= dir.buildjs %>/widgets"
+          dest: "<%= dir.build.widgets %>"
           ext: ".js"
         ]
 
     watch:
-      coffee:
-        files: ["<%= dir.shared %>/**/*.coffee", "<%= dir.code %>/**/*.coffee"]
-        tasks: "coffee"
-      handlebars:
-        files: "<%= dir.shared %>/templates/**/*.htm"
-        tasks: "handlebars"
-      stylus:
-        files: "<%= dir.styles %>/**/*.styl"
+      shared_code:
+        files: "<%= dir.shared.root %>/**/*.coffee"
+        tasks: "coffee:shared"
+      client_code:
+        files: "<%= dir.client.code %>/**/*.coffee"
+        tasks: "coffee:client"
+      widgets_code:
+        files: "<%= dir.client.widgets %>/**/*.coffee"
+        tasks: "coffee:widgets"
+      shared_templates:
+        files: "<%= dir.shared.templates %>/**/*.htm"
+        tasks: "handlebars:shared"
+      widgets_templates:
+        files: "<%= dir.client.widgets %>/*/templates/*.htm"
+        tasks: "handlebars:widgets"
+      styles:
+        files: "<%= dir.client.styles %>/**/*.styl"
         tasks: "stylus"
 
     cssmin:
       bootstrap:
         files:
-          "<%= dir.prod %>/css/bootstrap.css": "<%= dir.build %>/css/bootstrap.css"
+          "<%= dir.prod.css %>/bootstrap.css": "<%= dir.build.css %>/bootstrap.css"
 
     requirejs:
       compile:
         options:
-          baseUrl: "<%= dir.buildjs %>"
-          mainConfigFile: "<%= dir.buildjs %>/common.js"
-          dir: "<%= dir.prod %>/js"
+          baseUrl: "<%= dir.build.js %>"
+          mainConfigFile: "<%= dir.build.js %>/config.js"
+          dir: "<%= dir.prod.js %>"
           modules: [
             {
-              name: "common"
+              name: "app"
             }
             {
               name: "widgets/hello"
-              exclude: ["common"]
+              exclude: ["app"]
             }
           ]
 

@@ -4,6 +4,7 @@ define [
   "components/data-store"
   "services/data"
   "models/post"
+  "./config"
 ], (sandbox, factory, DataStore, data, Post) ->
 
   sandbox.on "app:start", ->
